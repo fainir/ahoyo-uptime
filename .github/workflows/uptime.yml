@@ -1,0 +1,21 @@
+name: Uptime
+
+# Hourly check from outside Railway that ahoyo.app and its database answer.
+# A failed scheduled run emails the repo owner (GitHub's default for failed workflows).
+on:
+  schedule:
+    - cron: '7 * * * *'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Site and database answer
+        run: |
+          for url in https://ahoyo.app/readyz https://ahoyo.app/; do
+            curl -fsS --retry 4 --retry-delay 15 --retry-all-errors --max-time 20 -o /dev/null "$url" \
+              || { echo "::error::$url is not answering"; exit 1; }
+            echo "$url ok"
+          done
